@@ -1,0 +1,60 @@
+---
+greeting:
+  patterns:
+    - "hello"
+    - "hi"
+    - "hey"
+    - "good morning"
+    - "good afternoon"
+  responses:
+    - "Hello! How can I assist you today?"
+    - "Hi there! What can I do for you?"
+
+farewell:
+  patterns:
+    - "bye"
+    - "goodbye"
+    - "see you"
+    - "later"
+  responses:
+    - "Goodbye! Have a great day!"
+    - "See you soon!"
+
+weather:
+  patterns:
+    - "weather"
+    - "temperature"
+    - "forecast"
+    - "how's the weather in"
+    - "is it raining in"
+  responses:
+    - "Let me check the weather conditions for you."
+    - "I can provide a weather update."
+
+company:
+  patterns:
+    - "company services"
+    - "what does your company do"
+    - "tell me about your"
+    - "do you offer"
+  responses:
+    - "We provide various technology solutions."
+    - "Our services include AI and cloud solutions."
+
+chatgpt_fallback:
+  patterns:
+    - "explain"
+    - "how does"
+    - "why is"
+    - "tell me more about"
+  responses:
+    - "Let me provide more details about that."
+support:
+  patterns:
+    - "help"
+    - "support"
+    - "problem"
+    - "issue"
+  responses:
+    - "How can I assist you with this issue?"
+    - "Let me help you resolve this problem."

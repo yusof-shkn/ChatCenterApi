@@ -1,0 +1,45 @@
+# Test your FastAPI endpoints
+
+# Home Endpoint
+GET http://127.0.0.1:8081/
+Accept: application/json
+
+###
+
+# Hello Endpoint
+GET http://127.0.0.1:8081/hello/User
+Accept: application/json
+
+###
+
+# Register a new user
+POST http://127.0.0.1:8081/users/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "testuser",
+  "password": "strongpassword"
+}
+
+###
+
+# Login with the registered user
+POST http://127.0.0.1:8081/users/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "testuser",
+  "password": "strongpassword"
+}
+
+###
+# Refresh Access Token
+POST http://127.0.0.1:8081/users/refresh_token?refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImV4cCI6MTczNzIxMzI0OX0.dS5QIOc-KJoR0EJ2lv3Qjq-0MaiYFH-HYv7c1sfjTnw
+Content-Type: application/json
+Accept: application/json
+
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImV4cCI6MTczNzIxMzI0OX0.dS5QIOc-KJoR0EJ2lv3Qjq-0MaiYFH-HYv7c1sfjTnw"
+}

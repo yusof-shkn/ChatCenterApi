@@ -1,0 +1,8 @@
+*.pyc
+__pycache__
+migrations
+scripts
+.env
+.pytest_cache
+.trash
+.venv
