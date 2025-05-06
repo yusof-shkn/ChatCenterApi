@@ -13,6 +13,7 @@ from app.core.nlp.services import NLPService
 from app.core.nlp.schemas import IntentConfig
 from app.dependencies import get_nlp_service, get_redis
 from fastapi.encoders import jsonable_encoder
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -98,58 +99,37 @@ async def get_all_messages(
 async def process_message(
     text: str,
     redis: RedisCacheManager = Depends(get_redis),
-    nlp_service: NLPService = None,
+    nlp_service: NLPService = Depends(get_nlp_service),
 ) -> dict:
     """
-    Process a message to determine its intent and generate a response.
-    Uses NLPService for intent detection and caches results in Redis.
-
-    Args:
-        text: Input message text.
-        redis: RedisCacheManager instance for caching.
-        nlp_service: NLPService instance from app.state.
-
-    Returns:
-        Dict with intent, response, and metadata.
+    Process a message: try cache first, then run NLP, then cache and return.
+    Returns dict with intent, response, timestamp.
     """
+    cache_key = f"intent:{text.lower()}"
+
+    # 1) Cache lookup
+    cached = await redis.get(cache_key)
+    if cached:
+        try:
+            data = json.loads(cached)
+            data["from_cache"] = True
+            return data
+        except json.JSONDecodeError:
+            logger.warning("Corrupt cache for key %s, ignoring", cache_key)
+
+    # 2) Cache miss → run NLP
+    intent, response = nlp_service.determine_intent(text)
+    result = {
+        "intent": intent,
+        "response": response,
+        "timestamp": datetime.utcnow().isoformat(),
+        "from_cache": False,
+    }
+
+    # 3) Cache the JSON blob
     try:
-        # Check Redis cache
-        cache_key = f"intent:{text.lower()}"
-        cached_intent = await redis.get(cache_key)
-        if cached_intent:
-            config = nlp_service.intent_configs.get(
-                cached_intent,
-                IntentConfig(
-                    patterns=[], responses=["I'm not sure how to respond to that."]
-                ),
-            )
-            return {
-                "intent": cached_intent,
-                "response": config.responses[0],
-                "timestamp": datetime.utcnow(),
-            }
-
-        # NLP processing
-        intent = nlp_service.determine_intent(text.lower())
-
-        # Cache the result
-        await redis.set(cache_key, intent, ttl=CACHE_TTL)
-
-        # Get response from intent_configs
-        config = nlp_service.intent_configs.get(
-            intent,
-            IntentConfig(
-                patterns=[], responses=["I'm not sure how to respond to that."]
-            ),
-        )
-        response = config.responses[0]
-
-        return {
-            "intent": intent,
-            "response": response,
-            "timestamp": datetime.utcnow(),
-        }
-
+        await redis.set(cache_key, json.dumps(result), ttl=CACHE_TTL)
     except Exception as e:
-        logger.error(f"Message processing failed: {str(e)}")
-        raise RuntimeError(MESSAGE_PROCESSING_ERROR)
+        logger.warning("Failed to cache NLP result for %s: %s", cache_key, e)
+
+    return result

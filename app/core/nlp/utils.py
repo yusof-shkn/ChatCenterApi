@@ -2,11 +2,15 @@ from pathlib import Path
 import yaml
 from typing import Dict
 
+import logging
 
-def load_yaml_config(file_path: Path) -> Dict:
-    """Load YAML configuration file"""
+logger = logging.getLogger(__name__)
+
+
+def load_yaml_config(path: Path) -> dict:
     try:
-        with open(file_path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
-    except Exception as e:
-        raise RuntimeError(f"Failed to load YAML config: {str(e)}")
+    except UnicodeDecodeError as e:
+        logger.error("Failed to read YAML %s: %s", path, e)
+        raise RuntimeError(f"Cannot read config file {path}; ensure it's UTF‑8 encoded")

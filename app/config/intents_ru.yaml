@@ -1,0 +1,60 @@
+greeting:
+  patterns:
+    - "привет"             # “hello”                                  
+    - "здравствуйте"       # formal “hello”                          
+    - "хай"                # borrowed “hi”                           
+    - "доброе утро"        # “good morning”                         
+    - "добрый день"        # “good afternoon”                       
+  responses:
+    - "Привет! Чем могу помочь?"                 
+    - "Здравствуйте! Что я могу для вас сделать?"
+
+farewell:
+  patterns:
+    - "пока"               # “bye”                                  
+    - "до свидания"        # “goodbye”                             
+    - "увидимся"           # “see you”                             
+    - "позже"              # “later”                               
+  responses:
+    - "Пока! Хорошего дня!"                     
+    - "До скорой встречи!"
+
+weather:
+  patterns:
+    - "погода"             # “weather”                             
+    - "температура"        # “temperature”                         
+    - "прогноз"            # “forecast”                            
+    - "какая погода в"     # “how's the weather in …”             
+    - "идет ли дождь в"    # “is it raining in …”                 
+  responses:
+    - "Давайте проверю текущие погодные условия."  
+    - "Я могу предоставить прогноз погоды."
+
+company:
+  patterns:
+    - "услуги компании"     # “company services”                   
+    - "чем занимается ваша компания"  # “what does your company do”  
+    - "расскажите о вашей"  # “tell me about your”                 
+    - "вы предлагаете"       # “do you offer”                       
+  responses:
+    - "Мы предлагаем различные технологические решения."  
+    - "Наши услуги включают ИИ и облачные решения."
+
+chatgpt_fallback:
+  patterns:
+    - "объясни"            # “explain”                             
+    - "как работает"       # “how does”                            
+    - "почему"             # “why is”                              
+    - "расскажите подробнее о"  # “tell me more about …”            
+  responses:
+    - "Разрешите рассказать об этом более подробно."
+
+support:
+  patterns:
+    - "помощь"             # “help”                                
+    - "поддержка"          # “support”                             
+    - "проблема"           # “problem”                             
+    - "вопрос"             # “issue/question”                      
+  responses:
+    - "Чем могу помочь в решении этой проблемы?"  
+    - "Давайте разберемся с вашей проблемой."

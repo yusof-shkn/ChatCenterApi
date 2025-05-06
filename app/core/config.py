@@ -70,7 +70,9 @@ class Settings(BaseSettings):
     # --------------------------
     # NLP Configuration
     # --------------------------
-    NLP_MODEL_NAME: str = "en_core_web_md"
+    DEFAULT_LANGUAGE: str = "english"
+    DEFAULT_LANGUAGE_CODE: str = "en"
+    NLP_MODEL_NAME: str = "en_core_web_sm"
     NLP_MODEL_PATH: str = ""  # For custom model loading
     NLP_RESPONSES: Dict[str, str] = {
         "greeting": "Hello! How can I assist you today?",
