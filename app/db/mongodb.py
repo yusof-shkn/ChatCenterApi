@@ -1,6 +1,7 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.core.config import settings
 from app.models.mongo_models import MessageLog
+from typing import List
 
 
 class MongoDB:
@@ -35,6 +36,12 @@ class MongoDB:
             .limit(limit)
             .to_list(None)
         )
+
+    async def get_recent_messages(self, user_id: str, limit: int = 1) -> List[dict]:
+        """Retrieve conversation context from MongoDB"""
+        return await mongo_db.db.messages.find(
+            {"user_id": user_id}, sort=[("timestamp", -1)], limit=limit
+        ).to_list(length=limit)
 
 
 mongo_db = MongoDB()

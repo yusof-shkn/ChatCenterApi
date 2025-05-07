@@ -1,5 +1,3 @@
-# app/core/nlp_models/__init__.py
-
 import logging
 from typing import Tuple, Dict
 

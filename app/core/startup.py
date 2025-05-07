@@ -47,6 +47,11 @@ async def shutdown_application(app: FastAPI) -> None:
 
         # Redis Cache
         if hasattr(app.state, "redis_cache"):
+            # Flush all keys from the Redis cache
+            await app.state.redis_cache.raw_redis.flushdb()
+            logger.info("Redis cache flushed")
+
+            # Close the Redis connection
             await app.state.redis_cache.close()
             del app.state.redis_cache
             logger.debug("Redis cache connection closed")

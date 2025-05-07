@@ -12,6 +12,7 @@ class MessageLog(BaseModel):
     processed: bool = False
     intent: Optional[str] = None
     response: Optional[str] = None
+    prev_intent: Optional[str] = None
 
     class Config:
         json_encoders = {datetime: lambda v: v.isoformat()}

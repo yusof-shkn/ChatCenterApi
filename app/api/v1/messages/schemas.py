@@ -5,11 +5,10 @@ from typing import Optional
 
 class MessageResponse(BaseModel):
     text: str
+    intent: str
     response: str
     timestamp: datetime
 
     class Config:
         from_attributes = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}

@@ -14,6 +14,11 @@ from app.core.nlp.schemas import IntentConfig
 from app.dependencies import get_nlp_service, get_redis
 from fastapi.encoders import jsonable_encoder
 import json
+import random
+from app.core.nlp.handlers.weather import WeatherHandler
+from app.core.nlp.handlers.support import SupportHandler
+from app.core.nlp.handlers.comany import CompanyHandler
+from app.core.nlp.handlers.social import SocialHandler
 
 logger = logging.getLogger(__name__)
 
@@ -39,20 +44,36 @@ async def store_in_postgres(user_id: uuid.UUID, text: str, result: dict) -> None
 
 
 async def store_in_mongodb(user_id: uuid.UUID, text: str, result: dict) -> None:
-    """Store message in MongoDB with error handling"""
+    """Enhanced storage with conversation tracking"""
     try:
+        prev = await mongo_db.get_recent_messages({"user_id": str(user_id)}, limit=1)
+
         message_log = MessageLog(
             user_id=str(user_id),
             text=text,
             intent=result["intent"],
             response=result["response"],
+            entities=result.get("entities"),
             processed=True,
+            timestamp=result["timestamp"],
+            prev_intent=prev["intent"] if prev else None,
+            prev_text=prev["text"] if prev else None,
+            retry_count=result.get("retry_count", 0),
         )
+
         await mongo_db.insert_message(message_log)
-        logger.info(f"Stored in MongoDB: user={user_id}")
+        logger.info(f"Stored message for {user_id} ({message_log.intent})")
+
     except Exception as e:
-        logger.error(f"MongoDB storage failed: user={user_id}: {str(e)}")
+        logger.error(f"MongoDB error: {str(e)}")
         raise
+
+
+async def get_city_weather(city: str, time: str = "today") -> dict:
+    return {
+        "description": f"{time} in {city} the weather is fine",
+        "temperature": random.randint(20, 30),
+    }
 
 
 async def get_all_messages(
@@ -97,39 +118,78 @@ async def get_all_messages(
 
 
 async def process_message(
+    user_id: uuid.UUID,
+    username: str,
+    email: str,
     text: str,
-    redis: RedisCacheManager = Depends(get_redis),
     nlp_service: NLPService = Depends(get_nlp_service),
+    weather_handler: WeatherHandler = None,
+    support_handler: SupportHandler = None,
+    company_handler: CompanyHandler = None,
+    social_handler: SocialHandler = None,
 ) -> dict:
-    """
-    Process a message: try cache first, then run NLP, then cache and return.
-    Returns dict with intent, response, timestamp.
-    """
-    cache_key = f"intent:{text.lower()}"
+    # Fetch previous context
+    prev_docs = await mongo_db.get_recent_messages(str(user_id), limit=1)
+    prev_intent = prev_docs[0]["intent"] if prev_docs else None
+    prev_entities = prev_docs[0].get("entities", {}) if prev_docs else {}
+    retry_count = prev_docs[0].get("retry_count", 0) if prev_docs else 0
 
-    # 1) Cache lookup
-    cached = await redis.get(cache_key)
-    if cached:
-        try:
-            data = json.loads(cached)
-            data["from_cache"] = True
-            return data
-        except json.JSONDecodeError:
-            logger.warning("Corrupt cache for key %s, ignoring", cache_key)
-
-    # 2) Cache miss → run NLP
-    intent, response = nlp_service.determine_intent(text)
+    # NLP Processing (assuming determine_intent returns language)
+    intent, response, entities, language = nlp_service.determine_intent(text)
     result = {
         "intent": intent,
         "response": response,
+        "entities": entities,
         "timestamp": datetime.utcnow().isoformat(),
         "from_cache": False,
+        "retry_count": 0,
     }
 
-    # 3) Cache the JSON blob
-    try:
-        await redis.set(cache_key, json.dumps(result), ttl=CACHE_TTL)
-    except Exception as e:
-        logger.warning("Failed to cache NLP result for %s: %s", cache_key, e)
+    # Intent Handling with language passed
+    result = await social_handler.handle(
+        language=language,
+        user_name=username,
+        email=email,
+        text=text,
+        current_intent=intent,
+        entities=entities,
+        prev_intent=prev_intent,
+        prev_entities=prev_entities,
+        retry_count=retry_count,
+        result=result,
+    )
 
+    if result["intent"] not in ["greeting", "farewell"]:
+        result = await weather_handler.handle(
+            language=language,
+            text=text,
+            current_intent=intent,
+            entities=entities,
+            prev_intent=prev_intent,
+            prev_entities=prev_entities,
+            retry_count=retry_count,
+            result=result,
+        )
+        result = await support_handler.handle(
+            language=language,
+            text=text,
+            current_intent=intent,
+            entities=entities,
+            prev_intent=prev_intent,
+            prev_entities=prev_entities,
+            retry_count=retry_count,
+            result=result,
+        )
+        result = await company_handler.handle(
+            language=language,
+            text=text,
+            current_intent=intent,
+            entities=entities,
+            prev_intent=prev_intent,
+            prev_entities=prev_entities,
+            retry_count=retry_count,
+            result=result,
+        )
+
+    await store_in_mongodb(user_id, text, result)
     return result

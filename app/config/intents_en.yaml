@@ -1,60 +1,104 @@
----
 greeting:
   patterns:
-    - "hello"
-    - "hi"
-    - "hey"
-    - "good morning"
-    - "good afternoon"
+    - ["hello"]
+    - ["hi"]
+    - ["hey"]
+    - ["good", "morning"]
+    - ["good", "afternoon"]
+    - ["howdy"]
   responses:
-    - "Hello! How can I assist you today?"
-    - "Hi there! What can I do for you?"
+    - "Hello {name}! {emoji} How can I assist you today?"
+    - "Hi there! {emoji} What can I do for you?"
 
 farewell:
   patterns:
-    - "bye"
-    - "goodbye"
-    - "see you"
-    - "later"
+    - ["bye"]
+    - ["goodbye"]
+    - ["see", "you"]
+    - ["later"]
   responses:
-    - "Goodbye! Have a great day!"
-    - "See you soon!"
-
+    - "Goodbye! {emoji} Have a great day!"
+    - "See you soon! {emoji}"
 weather:
   patterns:
-    - "weather"
-    - "temperature"
-    - "forecast"
-    - "how's the weather in"
-    - "is it raining in"
+    - ["weather"]
+    - ["temperature"]
+    - ["forecast"]
+    - ["how's", "the", "weather"]
+    - ["is", "it", "raining"]
   responses:
-    - "Let me check the weather conditions for you."
-    - "I can provide a weather update."
+    - "Sure, which city are you interested in?"
+    - "I'd be happy to check! Please tell me your city name."
+
+provide_city:
+  patterns:
+    - ["[LOC]"]
+    - ["dushanbe"]
+    - ["vahdat"]
+    - ["khujand"]
+    - ["bishkek"]
+  responses:
+    - "The weather in {city} is currently sunny with 25°C."
+    - "In {city}, expect partly cloudy skies with 22°C."
 
 company:
   patterns:
-    - "company services"
-    - "what does your company do"
-    - "tell me about your"
-    - "do you offer"
-  responses:
-    - "We provide various technology solutions."
-    - "Our services include AI and cloud solutions."
+    - ["company", "services"]
+    - ["what", "does", "your", "company", "do"]
+    - ["tell", "me", "about", "your"]
+    - ["do", "you", "offer"]
+    - ["history"]
+    - ["mission"]
+    - ["vision"]
+    - ["how", "many", "employees"]
+    - ["where", "are", "you", "located"]
 
-chatgpt_fallback:
-  patterns:
-    - "explain"
-    - "how does"
-    - "why is"
-    - "tell me more about"
   responses:
-    - "Let me provide more details about that."
+    - "We provide cutting-edge technology solutions."
+    - "Our services include AI, cloud computing, and cybersecurity."
+    - "We specialize in innovative software development."
+    - "Our company offers various technology solutions."
+
+  services:
+    - "AI and machine learning solutions"
+    - "Cloud infrastructure services"
+    - "Cybersecurity solutions"
+    - "Custom software development"
+
+  company_facts:
+    history: "Founded in 2010 with a vision to revolutionize technology solutions."
+    mission: "Empowering businesses through innovative technology solutions."
+    employees: "We have over 500 dedicated employees globally."
+    location: "Headquartered in Silicon Valley with offices worldwide."
 support:
   patterns:
-    - "help"
-    - "support"
-    - "problem"
-    - "issue"
+    - ["help"]
+    - ["support"]
+    - ["problem"]
+    - ["issue"]
+    - ["problems"]
+    - ["issues"]
+    - ["login", "issue"]
+    - ["login", "issues"]
   responses:
-    - "How can I assist you with this issue?"
-    - "Let me help you resolve this problem."
+    - "I’m here to help! Could you briefly describe your issue?"
+    - "Sure—what kind of problem are you experiencing?"
+  followups:
+    login:
+      keywords: ["login", "sign in", "password", "username"]
+      question: "Is this a login or authentication issue?"
+      responses:
+        - "For password resets, click “Forgot Password” on the login page. Did that help?"
+        - "Make sure your caps‑lock is off. Need more help logging in?"
+    payment:
+      keywords: ["payment", "bill", "invoice", "charge"]
+      question: "Are you having trouble with billing or payments?"
+      responses:
+        - "You can view invoices under Account → Billing. Did that resolve it?"
+        - "Would you like me to connect you to our billing team?"
+    other:
+      keywords: []
+      question: "Can you give me more details so I can point you in the right direction?"
+      responses:
+        - "Thanks—let me dig into that. Any error messages you’re seeing?"
+        - "Understood. Can you tell me which page or button you’re on?"
