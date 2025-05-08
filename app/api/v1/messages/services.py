@@ -11,14 +11,22 @@ from app.core.cache import RedisCacheManager
 from .schemas import MessageResponse
 from app.core.nlp.services import NLPService
 from app.core.nlp.schemas import IntentConfig
-from app.dependencies import get_nlp_service, get_redis
+from app.dependencies import get_redis
 from fastapi.encoders import jsonable_encoder
+
 import json
 import random
 from app.core.nlp.handlers.weather import WeatherHandler
 from app.core.nlp.handlers.support import SupportHandler
-from app.core.nlp.handlers.comany import CompanyHandler
+from app.core.nlp.handlers.company import CompanyHandler
 from app.core.nlp.handlers.social import SocialHandler
+from app.core.nlp.handlers import IntentRouter
+from app.core.nlp.dependencies import get_intent_router
+
+from app.core.nlp.handlers.weather import WeatherContext
+from app.core.nlp.handlers.company import CompanyContext
+from app.core.nlp.handlers.support import SupportContext
+from app.core.nlp.handlers.social import SocialContext
 
 logger = logging.getLogger(__name__)
 
@@ -122,74 +130,88 @@ async def process_message(
     username: str,
     email: str,
     text: str,
-    nlp_service: NLPService = Depends(get_nlp_service),
-    weather_handler: WeatherHandler = None,
-    support_handler: SupportHandler = None,
-    company_handler: CompanyHandler = None,
-    social_handler: SocialHandler = None,
+    nlp_service: NLPService,
+    intent_router: IntentRouter,
 ) -> dict:
-    # Fetch previous context
+    """
+    Process user message through NLP pipeline and intent handlers.
+    Returns final response with metadata.
+    """
+    # Fetch previous conversation context
     prev_docs = await mongo_db.get_recent_messages(str(user_id), limit=1)
-    prev_intent = prev_docs[0]["intent"] if prev_docs else None
-    prev_entities = prev_docs[0].get("entities", {}) if prev_docs else {}
-    retry_count = prev_docs[0].get("retry_count", 0) if prev_docs else 0
+    prev_context = prev_docs[0] if prev_docs else {}
 
-    # NLP Processing (assuming determine_intent returns language)
-    intent, response, entities, language = nlp_service.determine_intent(text)
-    result = {
-        "intent": intent,
-        "response": response,
-        "entities": entities,
-        "timestamp": datetime.utcnow().isoformat(),
-        "from_cache": False,
-        "retry_count": 0,
+    # Get NLP processing result
+    nlp_result = nlp_service.process_text(text)
+
+    # Build base context structure
+    base_context = {
+        "user_id": user_id,
+        "user_name": username,
+        "email": email,
+        "text": text,
+        "language": nlp_result.language,
+        "current_intent": nlp_result.intent,
+        "entities": nlp_result.entities,
+        "prev_intent": prev_context.get("intent"),
+        "prev_entities": prev_context.get("entities", {}),
+        "retry_count": prev_context.get("retry_count", 0),
+        "timestamp": datetime.utcnow(),
+        "result": {
+            "intent": nlp_result.intent,
+            "response": nlp_result.response,
+            "entities": nlp_result.entities,
+            "timestamp": datetime.utcnow().isoformat(),
+            "from_cache": False,
+        },
     }
 
-    # Intent Handling with language passed
-    result = await social_handler.handle(
-        language=language,
-        user_name=username,
-        email=email,
-        text=text,
-        current_intent=intent,
-        entities=entities,
-        prev_intent=prev_intent,
-        prev_entities=prev_entities,
-        retry_count=retry_count,
-        result=result,
-    )
+    # Get processing order from router
+    processing_order = intent_router.get_processing_order()
 
-    if result["intent"] not in ["greeting", "farewell"]:
-        result = await weather_handler.handle(
-            language=language,
-            text=text,
-            current_intent=intent,
-            entities=entities,
-            prev_intent=prev_intent,
-            prev_entities=prev_entities,
-            retry_count=retry_count,
-            result=result,
-        )
-        result = await support_handler.handle(
-            language=language,
-            text=text,
-            current_intent=intent,
-            entities=entities,
-            prev_intent=prev_intent,
-            prev_entities=prev_entities,
-            retry_count=retry_count,
-            result=result,
-        )
-        result = await company_handler.handle(
-            language=language,
-            text=text,
-            current_intent=intent,
-            entities=entities,
-            prev_intent=prev_intent,
-            prev_entities=prev_entities,
-            retry_count=retry_count,
-            result=result,
-        )
+    # Process through handlers in sequence
+    for handler_name in processing_order:
+        handler = intent_router.get_handler(handler_name)
+        if not handler:
+            continue
 
-    await store_in_mongodb(user_id, text, result)
-    return result
+        # Create appropriate context type
+        context = create_handler_context(handler_name, base_context)
+
+        # Skip non-social handlers if social intent detected
+        if handler_name != "social" and base_context["result"]["intent"] in [
+            "greeting",
+            "farewell",
+        ]:
+            continue
+
+        # Execute handler and update context
+        try:
+            result = await handler.handle(context)
+            base_context.update(
+                {
+                    "result": result,
+                    "current_intent": result["intent"],
+                    "entities": result.get("entities", {}),
+                }
+            )
+        except Exception as e:
+            logger.error("Handler %s failed: %s", handler_name, str(e))
+            continue
+
+    # Persist final result
+    final_result = base_context["result"]
+    await store_in_mongodb(user_id, text, final_result)
+
+    return final_result
+
+
+def create_handler_context(handler_name: str, base_context: dict):
+    """Factory method for creating typed contexts"""
+    context_map = {
+        "social": SocialContext,
+        "weather": WeatherContext,
+        "support": SupportContext,
+        "company": CompanyContext,
+    }
+    return context_map[handler_name](**base_context)

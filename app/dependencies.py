@@ -54,13 +54,3 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     except Exception as e:
         logger.error(f"Failed to fetch user {username}: {str(e)}")
         raise credentials_exception
-
-
-# Update get_nlp_service to use request context
-
-
-async def get_nlp_service(request: Request) -> NLPService:
-    """
-    Get NLPService from app state using request context
-    """
-    return request.app.state.nlp_service

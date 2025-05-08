@@ -7,6 +7,7 @@ from app.core.nlp.services import NLPService
 from app.core.cache import RedisCacheManager
 import logging
 from fastapi_limiter import FastAPILimiter
+from app.core.nlp.dependencies import get_nlp_service
 
 logger = logging.getLogger("app.core")
 
@@ -31,8 +32,7 @@ async def initialize_application(app: FastAPI) -> None:
         logger.info("Rate Limiter initialized")
 
         # NLP Service
-        nlp_service = NLPService()
-        app.state.nlp_service = nlp_service
+        app.state.nlp_service = get_nlp_service()
         logger.info("NLPService initialized (model: %s)", settings.NLP_MODEL_NAME)
 
     except Exception as e:

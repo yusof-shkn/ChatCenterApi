@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 
 # Map of language keys → loader functions
 _LOADERS: Dict[str, callable] = {
-    "english": load_english,
-    "tajiki": load_tajiki,
-    "russian": load_russian,
+    "en": load_english,
+    "tg": load_tajiki,
+    "ru": load_russian,
 }
 
 

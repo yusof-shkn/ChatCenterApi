@@ -8,8 +8,8 @@ greeting:
     - ["howdy"]
   responses:
     - "Hello {name}! {emoji} How can I assist you today?"
-    - "Hi there! {emoji} What can I do for you?"
-
+    - "Hi there {name}! {emoji} What can I do for you?"
+  fallback: "Hello! How can I assist you today?"
 farewell:
   patterns:
     - ["bye"]
@@ -19,28 +19,39 @@ farewell:
   responses:
     - "Goodbye! {emoji} Have a great day!"
     - "See you soon! {emoji}"
+  fallback: "Goodbye! Have a great day!"
 weather:
   patterns:
     - ["weather"]
+    - ["what's", "the", "weather"]
     - ["temperature"]
     - ["forecast"]
-    - ["how's", "the", "weather"]
     - ["is", "it", "raining"]
   responses:
-    - "Sure, which city are you interested in?"
-    - "I'd be happy to check! Please tell me your city name."
-
-provide_city:
+    - "Which city would you like the weather for?"
+    - "Tell me a city, and I'll check the weather."
+  fallback: "Please provide a city name."
+weather_prompt:
   patterns:
     - ["[LOC]"]
+    - ["moscow"]
+    - ["saint", "petersburg"]
+    - ["novosibirsk"]
+    - ["yekaterinburg"]
     - ["dushanbe"]
     - ["vahdat"]
     - ["khujand"]
     - ["bishkek"]
   responses:
-    - "The weather in {city} is currently sunny with 25°C."
-    - "In {city}, expect partly cloudy skies with 22°C."
-
+    - "Please provide a city name."
+    - "Which city are you interested in?"
+  fallback: "Please provide a city name."
+weather_response:
+  patterns: []
+  responses:
+    - "The weather in {city} is {description}, temperature {temp}°C"
+    - "In {city}, it's currently {description}, {temp}°C"
+  fallback: "Please provide a city name."
 company:
   patterns:
     - ["company", "services"]
@@ -48,28 +59,27 @@ company:
     - ["tell", "me", "about", "your"]
     - ["do", "you", "offer"]
     - ["history"]
+    - ["company"]
     - ["mission"]
     - ["vision"]
     - ["how", "many", "employees"]
     - ["where", "are", "you", "located"]
-
   responses:
     - "We provide cutting-edge technology solutions."
     - "Our services include AI, cloud computing, and cybersecurity."
     - "We specialize in innovative software development."
     - "Our company offers various technology solutions."
-
   services:
     - "AI and machine learning solutions"
     - "Cloud infrastructure services"
     - "Cybersecurity solutions"
     - "Custom software development"
-
   company_facts:
     history: "Founded in 2010 with a vision to revolutionize technology solutions."
     mission: "Empowering businesses through innovative technology solutions."
     employees: "We have over 500 dedicated employees globally."
     location: "Headquartered in Silicon Valley with offices worldwide."
+  fallback: "Could you clarify what company information you're seeking?"
 support:
   patterns:
     - ["help"]
@@ -78,6 +88,7 @@ support:
     - ["issue"]
     - ["problems"]
     - ["issues"]
+    - ["login"]
     - ["login", "issue"]
     - ["login", "issues"]
   responses:
@@ -88,8 +99,8 @@ support:
       keywords: ["login", "sign in", "password", "username"]
       question: "Is this a login or authentication issue?"
       responses:
-        - "For password resets, click “Forgot Password” on the login page. Did that help?"
-        - "Make sure your caps‑lock is off. Need more help logging in?"
+        - "For password resets, click 'Forgot Password' on the login page. Did that help?"
+        - "Make sure your caps-lock is off. Need more help logging in?"
     payment:
       keywords: ["payment", "bill", "invoice", "charge"]
       question: "Are you having trouble with billing or payments?"
@@ -102,3 +113,4 @@ support:
       responses:
         - "Thanks—let me dig into that. Any error messages you’re seeing?"
         - "Understood. Can you tell me which page or button you’re on?"
+  fallback: "Can you provide more details about your issue?"
