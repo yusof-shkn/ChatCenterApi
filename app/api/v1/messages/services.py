@@ -8,7 +8,7 @@ from app.models.postgres_models import SessionHistory
 from app.models.mongo_models import MessageLog
 from app.db.mongodb import mongo_db
 from app.core.cache import RedisCacheManager
-from .schemas import MessageResponse
+from .schemas import MessageResponse, MessageResponsePostgre
 from app.core.nlp.services import NLPService
 from app.core.nlp.schemas import IntentConfig
 from app.dependencies import get_redis
@@ -90,14 +90,14 @@ async def get_all_messages(
     limit: int,
     use_cache: bool,
     redis: RedisCacheManager = Depends(get_redis),
-) -> List[MessageResponse]:
+) -> List[MessageResponsePostgre]:
     cache_key = CACHE_KEY_TEMPLATE.format(user_id=user_id, skip=skip, limit=limit)
 
     # Try cache
     if use_cache:
         cached = await redis.get(cache_key)
         if cached:
-            return [MessageResponse(**item) for item in cached]
+            return [MessageResponsePostgre(**item) for item in cached]
 
     # Database query
     rows = (
@@ -108,7 +108,7 @@ async def get_all_messages(
     )
 
     messages = [
-        MessageResponse(
+        MessageResponsePostgre(
             text=row.message,
             response=row.response,
             timestamp=str(row.created_at),

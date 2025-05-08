@@ -12,3 +12,13 @@ class MessageResponse(BaseModel):
     class Config:
         from_attributes = True
         json_encoders = {datetime: lambda v: v.isoformat()}
+
+
+class MessageResponsePostgre(BaseModel):
+    text: str
+    response: str
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+        json_encoders = {datetime: lambda v: v.isoformat()}

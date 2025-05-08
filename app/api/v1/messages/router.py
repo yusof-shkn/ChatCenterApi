@@ -9,7 +9,7 @@ from fastapi import (
     Response,
 )
 from typing import List
-from .schemas import MessageResponse
+from .schemas import MessageResponse,MessageResponsePostgre
 from app.dependencies import get_redis, get_current_user
 from .services import (
     process_message,
@@ -74,7 +74,7 @@ async def send_message(
 
 @router.get(
     "/messages",
-    response_model=List[MessageResponse],
+    response_model=List[MessageResponsePostgre],
     dependencies=[Depends(RateLimiter(times=100, seconds=60))],
 )
 @cache_response()
@@ -84,5 +84,5 @@ async def get_messages(
     limit: int = Query(10, le=100),
     use_cache: bool = True,
     redis: RedisCacheManager = Depends(get_redis),
-) -> List[MessageResponse]:
+) -> List[MessageResponsePostgre]:
     return await get_all_messages(user.id, skip, limit, use_cache, redis)

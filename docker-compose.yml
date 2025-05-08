@@ -1,8 +1,64 @@
-version: "3.8"
+
 services:
-  fastapi:
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: shkn12
+      POSTGRES_DB: chat_center
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+  mongo:
+    image: mongo:6-jammy
+    environment:
+      MONGO_INITDB_DATABASE: chat_center
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  app:
     build: .
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./database.db
+      - APP_ENV=production
+      - DEBUG=False
+      - POSTGRES_URL=postgresql://postgres:shkn12@postgres/chat_center
+      - MONGODB_URL=mongodb://mongo:27017
+      - REDIS_URL=redis://redis:6379/0
+      - NLP_MODEL_NAME=ru_core_news_md
+      - XX_ENT_MODEL=xx_ent_wiki_sm
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mongo:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import spacy; spacy.load('ru_core_news_md'); spacy.load('xx_ent_wiki_sm')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:
