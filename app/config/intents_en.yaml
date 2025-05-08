@@ -46,12 +46,14 @@ weather_prompt:
     - "Please provide a city name."
     - "Which city are you interested in?"
   fallback: "Please provide a city name."
+
 weather_response:
   patterns: []
   responses:
-    - "The weather in {city} is {description}, temperature {temp}°C"
-    - "In {city}, it's currently {description}, {temp}°C"
+    - "The weather in {city} for {time} is {description}, temperature {temp}°C"
+    - "In {city}, for {time}, it's currently {description}, {temp}°C"
   fallback: "Please provide a city name."
+  
 company:
   patterns:
     - ["company", "services"]

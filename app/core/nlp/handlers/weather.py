@@ -140,10 +140,20 @@ class WeatherHandler:
             logger.warning(
                 "No response templates found for weather_response, language=%s", lang
             )
+
             default_templates = {
-                "en": ["The weather in {city} is {description} with {temp}°C"],
-                "ru": ["Погода в {city} {description}, температура {temp}°C"],
-                "tj": ["Обу ҳаво дар {city} {description}, ҳарорат {temp}°C"],
+                "en": [
+                    "The weather in {city} for {time} is {description}, temperature {temp}°C",
+                    "In {city}, for {time}, it's currently {description}, {temp}°C",
+                ],
+                "ru": [
+                    "В {city} на {time} сейчас {description}, {temp}°C",
+                    "Обу ҳаво дар {city} {description}, ҳарорат {temp}°C",
+                ],
+                "tj": [
+                    "Обу ҳаво дар {city} барои {time}: {description}, ҳарорат {temp}°C",
+                    "Дар {city} барои {time} ҳоло {description}, {temp}°C",
+                ],
             }
             templates = default_templates.get(lang, default_templates["en"])
 

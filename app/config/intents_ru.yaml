@@ -53,8 +53,8 @@ weather_prompt:
 weather_response:
   patterns: []
   responses:
-    - "Погода в {city}: {description}, температура {temp}°C"
-    - "В {city} сейчас {description}, {temp}°C"
+    - "Погода в {city} на {time}: {description}, температура {temp}°C"
+    - "В {city} на {time} сейчас {description}, {temp}°C"
   fallback: "Пожалуйста, укажите название города."
 
 company:

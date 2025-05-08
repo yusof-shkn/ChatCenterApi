@@ -53,8 +53,8 @@ weather_prompt:
 weather_response:
   patterns: []
   responses:
-    - "Обу ҳаво дар {city}: {description}, ҳарорат {temp}°C"
-    - "Дар {city} ҳоло {description}, {temp}°C"
+    - "Обу ҳаво дар {city} барои {time}: {description}, ҳарорат {temp}°C"
+    - "Дар {city} барои {time} ҳоло {description}, {temp}°C"
   fallback: "Лутфан, номи шаҳрро гӯед."
 
 company:
