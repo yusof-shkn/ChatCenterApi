@@ -1,133 +1,93 @@
-**Чат-центр API (FastAPI)**  
-**Автор**: Yusof Shokohyan  
+Вот как можно дополнить раздел **"Установка и запуск"** в вашей документации, добавив подробную инструкцию по **Docker-сборке** и запуску проекта:
 
 ---
 
-## Особенности проекта  
-Многоязычный чат-бот с поддержкой русского, английского и таджикского языков. Обрабатывает контекстные диалоги, интенты и сущности на основе YAML-конфигураций.
+## Установка и запуск
 
-### Основные возможности:  
-- Обработка естественного языка (NLP) через SpaCy  
-- Поддержка многошаговых диалогов  
-- Интеграция с PostgreSQL, MongoDB и Redis  
-- Локализованные ответы на русском, таджикском и английском  
+### Требования:
 
----
-
-## Технологический стек  
-- **Backend**: FastAPI + Uvicorn  
-- **Базы данных**: PostgreSQL (основные данные), MongoDB (история сообщений)  
-- **Кэш**: Redis  
-- **NLP**: SpaCy с кастомными YAML-конфигами  
-- **Деплоймент**: Docker, Nginx  
+* Python 3.10+ *(только для локальной разработки)*
+* Docker
+* PostgreSQL 14+ *(в Docker-сборке поднимается автоматически)*
+* Docker Compose
 
 ---
 
-## Установка и запуск  
+### 1. Клонировать репозиторий
 
-### Требования:  
-- Python 3.10+  
-- Docker  
-- PostgreSQL 14+  
-
-### Инструкции:  
-1. Клонировать репозиторий:  
-   ```bash 
-   git clone https://github.com/yusof-shkn/chat-center-api.git
-   cd chat-center-api
-   ```
-
-2. Установить зависимости:  
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-3. Настроить `.env` файл:  
-   ```ini
-   POSTGRES_URL=postgresql://user:pass@localhost:5432/main
-   MONGO_URI=mongodb://localhost:27017
-   NLP_MODEL_NAME=ru_core_news_md
-   ```
-
-4. Запустить сервисы:  
-   ```bash
-   docker-compose up -d  # Запуск PostgreSQL и Redis
-   uvicorn app.main:app --reload  # Запуск FastAPI
-   ```
-
----
-
-## Конфигурация бота  
-### Пример YAML-конфига (русский):  
-```yaml
-greeting:
-  patterns:
-    - ["привет"]
-    - ["здравствуйте"]
-  responses:
-    - "Привет, {name}! Чем могу помочь?"
-    
-weather:
-  patterns:
-    - ["погода"]
-    - ["температура"]
-  responses:
-    - "В каком городе нужен прогноз?"
+```bash
+git clone https://github.com/yusof-shkn/chat-center-api.git
+cd chat-center-api
 ```
 
 ---
 
-## Взаимодействие с ботом  
-### Пример запроса через API:  
-**Endpoint**: `POST /api/message`  
-**Тело запроса**:  
-```json
-{
-  "text": "Привет, какая погода в Душанбе?",
-  "user_id": "USER123",
-  "language": "ru"
-}
+### 2. Создать и настроить `.env` файл
+
+Создайте `.env` в корне проекта:
+
+```ini
+POSTGRES_URL=postgresql://postgres:postgres@db:5432/main
+MONGO_URI=mongodb://mongo:27017
+REDIS_URL=redis://redis:6379
+NLP_MODEL_NAME=ru_core_news_md
 ```
 
-**Ответ**:  
-```json
-{
-  "intent": "weather",
-  "response": "В Душанбе сейчас солнечно, 28°C",
-  "confidence": 0.92
-}
+> ⚠️ Убедитесь, что переменные совпадают с настройками в `docker-compose.yml`
+
+---
+
+### 3. Построить и запустить контейнеры с помощью Docker
+
+
+#### 3.1 Запуск проекта
+
+```bash
+docker compose up -d
+```
+
+Это запустит:
+
+* FastAPI API-сервер (`app`)
+* PostgreSQL (`db`)
+* Redis (`redis`)
+* MongoDB (`mongo`)
+
+#### 3.2 Проверка
+
+После запуска перейдите в браузере на:
+[http://localhost:8000/docs](http://localhost:8000/docs) — авто-документация Swagger
+
+---
+
+### 4. Перезапуск с новыми переменными `.env`
+
+Если вы отредактировали `.env`, выполните:
+
+```bash
+docker compose up -d --build
+```
+
+Это пересоберёт образ, пересоздаст контейнеры и применит новые переменные.
+
+---
+
+### 5. Локальный запуск без Docker *(опционально)*
+
+#### Установка зависимостей:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+#### Запуск сервера:
+
+```bash
+uvicorn app.main:app --reload
 ```
 
 ---
 
-## Архитектура NLP  
-1. **Токенизация текста**  
-2. **Поиск интентов** по шаблонам из YAML  
-3. **Извлечение сущностей** (города, даты)  
-4. **Генерация ответа** на основе конфигурации  
-
-```mermaid
-graph TD
-    A[Пользователь] --> B{API}
-    B --> C[NLP Engine]
-    C --> D[Поиск интентов]
-    D --> E[Извлечение сущностей]
-    E --> F[Генерация ответа]
-    F --> B
-    B --> A
-```
-
----
-
-## Лицензия и контакты  
-**Лицензия**: MIT License  
-**Разработчик**: Yusof Shokohyan  
-- GitHub: [yusof-shkn](https://github.com/yusof-shkn)  
-- Telegram: [@yusof_shkn](https://t.me/Yusof_0090)  
-- Email: yusof.shokohyan4@gmail.com  
-
----
-
-**Примечание**: Для работы с таджикским языком добавьте соответствующие YAML-конфиги и модель SpaCy для таджикского языка.
+Хотите, чтобы я добавил пример `docker-compose.yml` тоже?

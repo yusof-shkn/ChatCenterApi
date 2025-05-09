@@ -22,3 +22,7 @@ class LanguageManager:
         return self.config.fallbacks.get(normalized, {}).get(
             response_type, self.config.fallbacks[self.config.code][response_type]
         )
+    # Add to LanguageManager
+    def normalize_tajiki(text: str) -> str:
+        """Normalize Tajik text variations"""
+        return text.replace("ӯ", "ў").replace("ҳ", "х")  # Example normalizations

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     PORT: int = 8000
     MAINTENANCE_MODE: bool = False
     ADMIN_EMAIL: str = "admin@example.com"
-
+    USE_GPU: bool = False
     # --------------------------
     # Security & Authentication
     # --------------------------

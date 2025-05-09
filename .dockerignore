@@ -1,4 +1,5 @@
-.env
+# .dockerignore
+# .env
 venv/
 .venv
 __pycache__/
@@ -10,7 +11,5 @@ Dockerfile
 docker-compose.yml
 .git
 *.md
-*.txt
 data/
-models/
 tests/

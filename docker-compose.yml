@@ -1,4 +1,3 @@
-
 services:
   postgres:
     image: postgres:14-alpine
@@ -23,6 +22,11 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   mongo:
     image: mongo:6-jammy
@@ -39,21 +43,26 @@ services:
       - "8000:8000"
     environment:
       - APP_ENV=production
-      - DEBUG=False
-      - POSTGRES_URL=postgresql://postgres:shkn12@postgres/chat_center
+      - DEBUG=True
+      - POSTGRES_URL=postgres://postgres:shkn12@postgres/chat_center
       - MONGODB_URL=mongodb://mongo:27017
+      - MONGODB_NAME=chat_center
+      - MONGODB_MESSAGES_COLLECTION=messages
       - REDIS_URL=redis://redis:6379/0
-      - NLP_MODEL_NAME=ru_core_news_md
-      - XX_ENT_MODEL=xx_ent_wiki_sm
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - NLP_MODEL_NAME=en_core_web_sm
+      - SECRET_KEY=5cabdb656c85c687c94956a8aba28258683f962cfaed2d00665f6fd7a41320d8
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       mongo:
         condition: service_started
     healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import spacy; spacy.load('ru_core_news_md'); spacy.load('xx_ent_wiki_sm')\"" ]
+      test: [ "CMD-SHELL", "python -c \"import spacy; spacy.load('ru_core_news_md')\"" ]
       interval: 30s
       timeout: 10s
       retries: 3
