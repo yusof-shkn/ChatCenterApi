@@ -5,6 +5,7 @@ from app.core.config import settings
 from .english import load_english
 from .tajiki import load_tajiki
 from .russian import load_russian
+from .multi_language import load_multi_language
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,7 @@ _LOADERS: Dict[str, callable] = {
     "en": load_english,
     "tg": load_tajiki,
     "ru": load_russian,
+    "multi": load_multi_language,
 }
 
 

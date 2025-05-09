@@ -42,19 +42,41 @@ class NLPService:
     def process_text(self, text: str) -> NLPResult:
         logger.info("Processing text: '%s'", text)
 
-        # Detect language using the injected detectors
+        # Detect language
         detected_lang = self.language_detector.detect(text)
         normalized_lang = self.language_manager.normalize_language(detected_lang)
 
         try:
-            nlp, matcher, intent_configs = self._get_pipeline(normalized_lang)
-            doc = nlp(text)
-            intent = self._match_intents(doc, matcher)
+            # Get the primary pipeline for the detected language
+            primary_nlp, primary_matcher, primary_intent_configs = self._get_pipeline(
+                normalized_lang
+            )
+            doc = primary_nlp(text)  # Process text with the primary pipeline
+            intent = self._match_intents(doc, primary_matcher)
+
+            # If intent is unclear, use the multi-language pipeline's matcher
+            if intent == "unclear":
+                logger.info("Primary intent unclear, using multi-language matcher")
+                _, multi_matcher, multi_intent_configs = self._get_pipeline("multi")
+                intent = self._match_intents(
+                    doc, multi_matcher
+                )  # Reuse the existing doc
+                intent_configs = (
+                    multi_intent_configs
+                    if intent != "unclear"
+                    else primary_intent_configs
+                )
+            else:
+                intent_configs = primary_intent_configs
+
+            # Generate response and extract entities
             response = self._get_response(intent, intent_configs, normalized_lang)
+            entities = self._extract_entities(doc)
+
             return NLPResult(
                 intent=intent,
                 response=response,
-                entities=self._extract_entities(doc),
+                entities=entities,
                 language=normalized_lang,
                 confidence=self._calculate_confidence(doc),
             )
